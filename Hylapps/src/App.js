@@ -19,7 +19,7 @@ import brand from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 import "assets/css/nucleo-icons.css";
 import "assets/css/nucleo-svg.css";
-import { AuthContext } from "AuthContext";
+import { AuthContext } from "AuthContext"; // Import your AuthContext
 
 export default function App() {
   const [controller, dispatch] = useArgonController();
@@ -27,7 +27,6 @@ export default function App() {
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
   const { pathname } = useLocation();
-  const { role } = useContext(AuthContext);
   const isAuthenticated = !!localStorage.getItem("token"); // Check if token exists
 
   // Call routes function to get filtered routes
@@ -75,41 +74,32 @@ export default function App() {
       }
 
       if (route.route) {
-        // If authenticated, allow access to all routes, otherwise redirect to sign-in
         return isAuthenticated ? (
           <Route exact path={route.route} element={route.element} key={route.key} />
         ) : (
-          <Navigate to="/authentication/sign-in" />
+          <Navigate key={route.key} to="/authentication/sign-in" replace />
         );
       }
 
       return null;
     });
 
-  const configsButton = (
-    <ArgonBox
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      width="3.5rem"
-      height="3.5rem"
-      bgColor="white"
-      shadow="sm"
-      borderRadius="50%"
-      position="fixed"
-      right="2rem"
-      bottom="2rem"
-      zIndex={99}
-      color="dark"
-      sx={{ cursor: "pointer" }}
-      onClick={handleConfiguratorOpen}
-    >
-      <Icon fontSize="default" color="inherit">
-        settings
-      </Icon>
-    </ArgonBox>
-  );
+ 
 
+  // Render only the authentication page if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider theme={darkMode ? themeDark : theme}>
+        <CssBaseline />
+        <Routes>
+          <Route path="/authentication/sign-in" element={<Navigate to="/authentication/sign-in"  />} /> {/* Replace with your actual sign-in component */}
+          <Route path="*" element={<Navigate to="/authentication/sign-in" />} />
+        </Routes>
+      </ThemeProvider>
+    );
+  }
+
+  // Render main layout if authenticated
   return direction === "rtl" ? (
     <CacheProvider value={rtlCache}>
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
@@ -131,7 +121,7 @@ export default function App() {
         {layout === "vr" && <Configurator />}
         <Routes>
           {getRoutes(filteredRoutes)} {/* Use filtered routes here */}
-          <Route path="*" element={<Navigate to={isAuthenticated ? pathname : "/authentication/sign-in"} />} />
+          <Route path="*" element={<Navigate to="/authentication/sign-in" />} />
         </Routes>
       </ThemeProvider>
     </CacheProvider>
@@ -153,7 +143,7 @@ export default function App() {
       {layout === "vr" && <Configurator />}
       <Routes>
         {getRoutes(filteredRoutes)} {/* Use filtered routes here */}
-        <Route path="*" element={<Navigate to={isAuthenticated ? pathname : "/authentication/sign-in"} />} />
+        <Route path="*" element={<Navigate to="/authentication/sign-in" />} />
       </Routes>
     </ThemeProvider>
   );
